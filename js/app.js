@@ -1,38 +1,7 @@
 /* === 软工2502 抽号机 — Application Logic === */
 
-// ---- Student Data ----
-const STUDENTS = [
-  { id:  1, sid: "8002125052", name: "邱世豪" },
-  { id:  2, sid: "8002125048", name: "罗梓洋" },
-  { id:  3, sid: "8002125050", name: "毛昊辰" },
-  { id:  4, sid: "8002125051", name: "彭友浩" },
-  { id:  5, sid: "8002125053", name: "王薪博" },
-  { id:  6, sid: "8002125036", name: "胡惠柯" },
-  { id:  7, sid: "8002125042", name: "刘芳荣" },
-  { id:  8, sid: "8002125038", name: "李婧妍" },
-  { id:  9, sid: "8002125044", name: "刘倩"   },
-  { id: 10, sid: "8002125064", name: "祖健铭" },
-  { id: 11, sid: "8002125054", name: "王仪蒙" },
-  { id: 12, sid: "8002125056", name: "徐业彤" },
-  { id: 13, sid: "8002125049", name: "吕文燕" },
-  { id: 14, sid: "8002125062", name: "赵张琪" },
-  { id: 15, sid: "8002125061", name: "赵勇镔" },
-  { id: 16, sid: "8002125037", name: "赖旻锐" },
-  { id: 17, sid: "8002125033", name: "陈仲文" },
-  { id: 18, sid: "8002125034", name: "邓雨轩" },
-  { id: 19, sid: "8002125040", name: "梁文球" },
-  { id: 20, sid: "8002125035", name: "龚启钊" },
-  { id: 21, sid: "8002125046", name: "卢健稳" },
-  { id: 22, sid: "8002125045", name: "刘书鹏" },
-  { id: 23, sid: "8002125047", name: "陆文涛" },
-  { id: 24, sid: "8002125041", name: "凌宇晨" },
-  { id: 25, sid: "8002125043", name: "刘昊轩" },
-  { id: 26, sid: "8002125057", name: "杨博轩" },
-  { id: 27, sid: "8002125058", name: "杨振东" },
-  { id: 28, sid: "8002125059", name: "张博航" },
-  { id: 29, sid: "8002125060", name: "张艺宸" },
-  { id: 30, sid: "8002125063", name: "郑立涛" }
-];
+// 学生名单从 js/students.js 加载（已脱敏：只保留姓名，不包含学号）
+const STUDENTS = window.STUDENTS || [];
 
 const TOTAL = STUDENTS.length;
 
@@ -87,15 +56,15 @@ function bindEvents() {
 
 // ---- Student Grid ----
 function renderStudentGrid() {
-  $grid.innerHTML = STUDENTS.map(s =>
-    `<div class="student-tag" id="tag-${s.id}" title="${s.sid}">${s.name}</div>`
+  $grid.innerHTML = STUDENTS.map((name, i) =>
+    `<div class="student-tag" id="tag-${i}">${name}</div>`
   ).join('');
 }
 
 function highlightStudents(picks) {
   document.querySelectorAll('.student-tag.selected').forEach(el => el.classList.remove('selected'));
   picks.forEach(s => {
-    const el = document.getElementById('tag-' + s.id);
+    const el = document.getElementById('tag-' + s);
     if (el) el.classList.add('selected');
   });
 }
@@ -138,7 +107,7 @@ function draw() {
     const displayNames = [];
     for (let i = 0; i < count; i++) {
       const idx = (frame + i * 7) % pool.length;
-      let name = pool[idx].name;
+      let name = pool[idx];
       // Partial scramble: replace random characters
       if (frame < totalFrames - 5) {
         const scrambleRatio = 1 - (frame / totalFrames);
@@ -168,25 +137,15 @@ function draw() {
 
       isRolling = false;
       $drawBtn.disabled = false;
-
-      // Auto-reset highlights after 8 seconds
-      setTimeout(() => {
-        // Only clear if no new draw happened
-        const currentCards = $result.children.length;
-        if (currentCards > 0) {
-          // keep results, dim after a while
-        }
-      }, 15000);
     }
   }, 55);
 }
 
 // ---- Render Results ----
 function renderResults(picks) {
-  $result.innerHTML = picks.map((s, i) =>
+  $result.innerHTML = picks.map((name, i) =>
     `<div class="result-card" style="animation-delay:${i * 0.08}s">
-      <div class="card-name">${s.name}</div>
-      <div class="card-id">${s.sid}</div>
+      <div class="card-name">${name}</div>
     </div>`
   ).join('');
 }
@@ -209,7 +168,7 @@ function addHistory(picks) {
   const entry = {
     time: new Date().toLocaleTimeString('zh-CN', { hour12: false }),
     count: picks.length,
-    names: picks.map(s => s.name).join('、')
+    names: picks.join('、')
   };
   drawHistory.unshift(entry);
   if (drawHistory.length > 50) drawHistory.pop();
@@ -218,7 +177,7 @@ function addHistory(picks) {
 
 function renderHistory() {
   if (drawHistory.length === 0) {
-    $historyList.innerHTML = '<div class="history-empty">暂无抽取记录</div>';
+    $historyList.innerHTML = '<li class="history-empty">暂无抽取记录</li>';
     return;
   }
   $historyList.innerHTML = drawHistory.map(h =>
